@@ -6,4 +6,3 @@ Key files:
 - levels.py: Defines the Environment class and some subclasses.
 You shouldn't change this code but you should understand it.
 - test.py: Unit tests for the functions you will be asked to write.
-# csci-270-descent
