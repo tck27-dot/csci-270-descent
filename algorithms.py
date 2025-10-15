@@ -1,4 +1,5 @@
 import torch
+from torch import tensor
 from levels import Environment
 
 
@@ -30,7 +31,17 @@ def grad_descent(step_fn, env):
     
     """
     # Question ONE
-    pass
+    positions = []
+    pos = tensor([0.0, 0.0]) # starting position
+    positions.append(pos)
+    
+    while env.status() == Environment.ACTIVELY_SEARCHING:
+        step = step_fn(pos)
+        pos = pos + step
+        positions.append(pos) # allows us to store our final position as well
+        env.step_to(pos)
+    
+    return positions
 
 
 def momentum_grad_descent(rate, env):
@@ -56,11 +67,20 @@ class MomentumStepFunction:
     """    
     def __init__(self, loss_gradient, learning_rate, momentum_rate):
         # Question TWO
-        pass
+        self.momentum_rate = momentum_rate
+        self.learning_rate = learning_rate
+        self.loss_gradient = loss_gradient
+        self.prev_steps = []
         
     def __call__(self, pos):
         # Question TWO
-        pass
+        if self.prev_steps:
+            step = -self.learning_rate * self.loss_gradient(pos) + self.momentum_rate * self.prev_steps[-1] 
+        else:
+            step = -self.learning_rate * self.loss_gradient(pos)
+        self.prev_steps.append(step)
+        return step
+        
 
 
 def adagrad(rate, env):
