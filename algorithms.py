@@ -104,18 +104,19 @@ class AdagradStepFunction:
     2-dimensional torch.tensor).
         
     """
-    def __init__(self, loss_gradient, learning_rate, delta = 0.0000001):
+    def __init__(self, loss_gradient, initial_learning_rate, delta = 0.0000001):
         # Question THREE
         self.loss_gradient = loss_gradient
-        self.learning_rate = learning_rate
+        self.initial_learning_rate = initial_learning_rate
         self.delta = delta
         self.odometers_xy_squared = torch.tensor([0.0, 0.0])
         
     def __call__(self, pos):
         # Question THREE
-        self.learning_rate = self.learning_rate / (self.delta+self.odometers_xy_squared**-5)
-        step = -self.learning_rate * self.loss_gradient(pos)
         self.odometers_xy_squared += self.loss_gradient(pos) **2
+        current_rate = self.initial_learning_rate / (self.delta+self.odometers_xy_squared ** 0.5)
+        step = -current_rate * self.loss_gradient(pos) # step after adjusting learning rate
+
         return step
 
 
@@ -140,10 +141,28 @@ class RmsPropStepFunction:
     2-dimensional torch.tensor).
         
     """
-    def __init__(self, loss_gradient, learning_rate, decay_rate, delta=0.000001):
+    def __init__(self, loss_gradient, initial_learning_rate, decay_rate, delta=0.000001):
         # Question FOUR
-        pass
+        self.loss_gradient = loss_gradient
+        self.initial_learning_rate = initial_learning_rate
+        self.decay_rate = decay_rate
+        self.delta = delta
+        self.decaying_average = torch.tensor([0.0, 0.0])
+        self.previous_average = None
+        
         
     def __call__(self, pos):
         # Question FOUR
-        pass
+        if self.previous_average is None:
+            self.decaying_average = self.loss_gradient(pos) ** 2
+            m = self.decaying_average
+        else:
+            m = self.decay_rate * self.previous_average + ((1-self.decay_rate)*self.loss_gradient(pos) ** 2)
+            
+        self.previous_average = m
+        
+        current_rate = self.initial_learning_rate / (self.delta + m ** 0.5)
+        step = -current_rate * self.loss_gradient(pos)
+        return step
+
+       
