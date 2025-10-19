@@ -73,7 +73,7 @@ class MomentumStepFunction:
         self.prev_steps = []
         
     def __call__(self, pos):
-        # Question TWO
+        # Question TWO: Building on previous steps --- if they exist
         if self.prev_steps:
             step = -self.learning_rate * self.loss_gradient(pos) + self.momentum_rate * self.prev_steps[-1] 
         else:
@@ -106,11 +106,17 @@ class AdagradStepFunction:
     """
     def __init__(self, loss_gradient, learning_rate, delta = 0.0000001):
         # Question THREE
-        pass
+        self.loss_gradient = loss_gradient
+        self.learning_rate = learning_rate
+        self.delta = delta
+        self.odometers_xy_squared = torch.tensor([0.0, 0.0])
         
     def __call__(self, pos):
         # Question THREE
-        pass       
+        self.learning_rate = self.learning_rate / (self.delta+self.odometers_xy_squared**-5)
+        step = -self.learning_rate * self.loss_gradient(pos)
+        self.odometers_xy_squared += self.loss_gradient(pos) **2
+        return step
 
 
 def rmsprop(rate, decay_rate, env):
